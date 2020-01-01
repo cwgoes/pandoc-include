@@ -5,13 +5,9 @@ Each include statement has its own line and has the syntax:
 
     !include ../somefolder/somefile
 
-    !include-header ./header.yaml
-
 Or
 
     $include ../somefolder/somefile
-
-    $include-header ./header.yaml
 
 Each include statement must be in its own paragraph. That is, in its own line
 and separated by blank lines.
@@ -41,7 +37,6 @@ def is_include_line(elem):
     else:
         # include header
         return 2
-
 
 def get_filename(elem, includeType):
     fn = pf.stringify(elem, newlines=False).split(maxsplit=1)[1]
@@ -88,36 +83,15 @@ def action(elem, doc):
 
         os.chdir(target)
 
-        # Add recursive include support
-        new_elems = None
-        new_metadata = None
-        if includeType == 1:
-            new_elems = pf.convert_text(raw, extra_args=['--filter=pandoc-include'])
-
-            # Get metadata (Recursive header include)
-            new_metadata = pf.convert_text(raw, standalone=True, extra_args=['--filter=pandoc-include']).get_metadata()
-        else:
-            # Read header from yaml
-            new_metadata = yaml.load(raw)
-            new_metadata = OrderedDict(new_metadata)
-
-        # Merge metadata
-        new_metadata.update(doc.get_metadata())
-        doc.metadata = new_metadata
+        new_elems = pf.convert_text(raw, extra_args=['--filter=pandoc-include'])
 
         # Restore to current path
         os.chdir(cur_path)
         
-        # Alternative A:
         return new_elems
-        # Alternative B:
-        # div = pf.Div(*new_elems, attributes={'source': fn})
-        # return div
-
 
 def main(doc=None):
     return pf.run_filter(action, doc=doc) 
-
 
 if __name__ == '__main__':
     main()
